@@ -24,7 +24,7 @@ with mp_hands.Hands(
             for hand_landmarks in results.multi_hand_landmarks:
                 finger_points = []
                 # joints
-                for i in range(5, 9):
+                for i in range(len(hand_landmarks.landmark)):
                     landmark_px = mp_drawing._normalized_to_pixel_coordinates(
                         hand_landmarks.landmark[i].x, hand_landmarks.landmark[i].y, image_width, image_height)
                     if landmark_px:
