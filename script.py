@@ -10,7 +10,6 @@ MOMENTUM = 0.8
 DEBUG = os.environ.get("DEBUG", None)
 WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-BLANK = np.zeros((HEIGHT, WIDTH, 3))
 
 def ramp(prev, point):
     if not prev:
@@ -35,9 +34,6 @@ with mp_hands.Hands(
             image.flags.writeable = False # performance
         results = hands.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
-        if not DEBUG:
-            image = BLANK
-
         # ripping joints and handedness
         if results.multi_hand_landmarks:
             for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
@@ -47,14 +43,10 @@ with mp_hands.Hands(
                         hand_landmarks.landmark[j].x, hand_landmarks.landmark[j].y, WIDTH, HEIGHT)
                 if pt:
                     if hand_type == "Left":
-                        pt = prev_left = ramp(prev_left, pt) 
-                        color = (255, 0, 0)
+                        prev_left = ramp(prev_left, pt) 
                     else:
-                        pt = prev_right = ramp(prev_right, pt)
-                        color = (0, 255, 0)
-                    cv2.circle(image, pt, 5, color, -1)
+                        prev_right = ramp(prev_right, pt)
 
-        cv2.imshow('Index finger Tracking', image)
         if cv2.waitKey(5) == 27:
             break
 
