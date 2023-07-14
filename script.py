@@ -3,34 +3,44 @@ import os
 import serial
 import mediapipe as mp
 import numpy as np
+import freenect
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
-cap = cv2.VideoCapture(0)
 MOMENTUM = 0.8
 DEBUG = os.environ.get("DEBUG", None)
-WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+WIDTH = 1280
+HEIGHT = 720
 
+# smoothing function from t to t+1
 def ramp(prev, point):
     if not prev:
         return point
     else:
         return int(MOMENTUM*prev[0]+(1-MOMENTUM)*point[0]), int(MOMENTUM*prev[1]+(1-MOMENTUM)*point[1])
+
+# Function to get the depth data from the Kinect sensor
+def get_depth():
+    depth, _ = freenect.sync_get_depth(format=freenect.DEPTH_REGISTERED)
+    return depth
+
+# Function to get the video stream from the Kinect sensor
+def get_video():
+    video = freenect.sync_get_video()
+    return video
     
 def process(hands, ser):
     # ramping function for smoothing
-    prev_left, prev_right = None, None
-    while cap.isOpened():
-        success, image = cap.read()
-        if not success:
-            break
+    pos = None
+    while True:
+        depth, image = get_depth(), get_video()
         image = cv2.flip(image, 1)
         if not DEBUG:
             image.flags.writeable = False # performance
-        results = hands.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        results = hands.process(image)
 
         # ripping joints and handedness
+        left_present = False
         if results.multi_hand_landmarks:
             for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
                 hand_type = results.multi_handedness[i].classification[0].label
@@ -39,9 +49,17 @@ def process(hands, ser):
                         hand_landmarks.landmark[j].x, hand_landmarks.landmark[j].y, WIDTH, HEIGHT)
                 if pt:
                     if hand_type == "Left":
-                        prev_left = ramp(prev_left, pt) 
+                        left_present = True
                     else:
-                        prev_right = ramp(prev_right, pt)
+                        pos = ramp(pos, pt)
+
+        # only register hand if left hand is also present
+        if not left_present:
+            continue
+        
+        # x: left-right, y: up-down, z: forward-backward
+        x, y = pos
+        z = depth[y][x]
 
         # TODO: caculating joint angles with inv kinematics
         x = y = z = 0
@@ -60,8 +78,8 @@ def main():
         # start processing loop
         ser = serial.Serial('/dev/ttyUSB0', 9600)  # Replace '/dev/ttyUSB0' with the appropriate serial port
         process(hands, ser)
-    cap.release()
-    ser.close()
+    cv2.destroyAllWindows()
+    freenect.sync_stop()
 
 if __name__ == "__main__":
     main()
