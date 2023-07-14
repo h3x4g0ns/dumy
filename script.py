@@ -21,12 +21,12 @@ def ramp(prev, point):
 
 # Function to get the depth data from the Kinect sensor
 def get_depth():
-    depth, _ = freenect.sync_get_depth(format=freenect.DEPTH_REGISTERED)
+    depth = freenect.sync_get_depth()[0]
     return depth
 
 # Function to get the video stream from the Kinect sensor
 def get_video():
-    video = freenect.sync_get_video()
+    video = freenect.sync_get_video()[0]
     return video
     
 def process(hands, ser):
