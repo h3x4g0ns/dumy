@@ -13,7 +13,6 @@ def get_video():
     return video
 
 # Main loop
-freenect.sync_set_led(freenect.LED_GREEN, 0)
 while True:
     # Get depth data
     depth = get_depth()
