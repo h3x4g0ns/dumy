@@ -68,9 +68,7 @@ def process(ser):
                 break
 
 def main():
-
-        # start processing loop
-        # ser = serial.Serial('/dev/ttyUSB0', 9600)  # Replace '/dev/ttyUSB0' with the appropriate serial port
+    # ser = serial.Serial('/dev/ttyUSB0', 9600)  
     process(None)
     cv2.destroyAllWindows()
     cap.release()
