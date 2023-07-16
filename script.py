@@ -62,7 +62,7 @@ def process(hands, ser):
         z = depth[y][x]
 
         # TODO: caculating joint angles with inv kinematics
-        x = y = z = 0
+        # x = y = z = 0
 
         # TODO: write destination to serial
         ser.write(f"{x} {y} {z}\n".encode())
