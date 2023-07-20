@@ -49,7 +49,7 @@ class Robot(object):
         c2 = (np.linalg.norm(xd)**2 - l1**2 - l2**2)/(2*l1*l2)
         ret = {}
         if c2 > 1:
-            ret["0"] = np.array([0, 0])
+            ret["0"] = np.array([np.nan, np.nan])
         elif c2 == 1:
             ret["1"] = np.array([np.arctan2(xd[1], xd[0]), 0])
         elif c2 == -1:
@@ -91,6 +91,8 @@ class Robot(object):
             xd (np.array): world coordinates (x, y, z)
         """
         q = list(self.world2joint(xd))
+        if np.isnan(q[0]) or np.isnan(q[1]) or np.isnan(q[2]):
+            return
         if not self.prev_state:
             self.prev_state = q
         self.prev_state = self.ramp(self.prev_state, q)
