@@ -6,7 +6,7 @@ import numpy as np
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 cap = cv2.VideoCapture(0)
-MOMENTUM = 0.8
+MOMENTUM = 0.9
 DEBUG = os.environ.get("DEBUG", None)
 WIDTH = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 HEIGHT = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
