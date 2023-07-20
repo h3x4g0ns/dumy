@@ -2,17 +2,18 @@ import numpy as np
 import serial
 
 class Robot(object):
-    def __init__(self, l1, l2, l3, momentum=0.9):
+    def __init__(self, l1, l2, l3, port, momentum=0.9):
         self.l1 = l1
         self.l2 = l2
         self.l3 = l3
         self.momentum = momentum
         self.connec = None
         self.prev_state = None
+        self.port = None
 
-    def __enter__(self, port):
+    def __enter__(self):
         """Opens serial connection to robot"""
-        self.connec = serial.Serial(port, baudrate=9600)
+        self.connec = serial.Serial(self.port, baudrate=9600)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -48,13 +49,13 @@ class Robot(object):
         c2 = (np.linalg.norm(xd)**2 - l1**2 - l2**2)/(2*l1*l2)
         ret = {}
         if c2 > 1:
-            ret["0"] = np.arrary([np.inf, np.inf])
+            ret["0"] = np.array([0, 0])
         elif c2 == 1:
-            ret["1"] = np.arrary([np.arctan2(xd[1], xd[0]), 0])
+            ret["1"] = np.array([np.arctan2(xd[1], xd[0]), 0])
         elif c2 == -1:
             ret["1"] = np.array([np.arctan2(xd[1], xd[0]), np.pi])
         else:
-            q21, q22 = np.arcos(c2), -np.arccos(c2)
+            q21, q22 = np.arccos(c2), -np.arccos(c2)
             theta = np.arctan2(xd[1], xd[0])
             q11 = theta - np.arctan2(l2*np.sin(q21), l1 + l2*np.cos(q21))
             q12 = theta - np.arctan2(l2*np.sin(q22), l1 + l2*np.cos(q22))
@@ -73,9 +74,13 @@ class Robot(object):
             np.array: joint angles (q1, q2, q3)
         """
         sols = self.rik(self.l2, self.l3, (np.sqrt(xd[0]**2 + xd[1]**2), -xd[2]+self.l1))
-        q1 = np.atan2(xd[1], xd[0])
-        q2 = sols["1"][0]
-        q3 = sols["1"][1]
+        q1 = np.arctan2(xd[1], xd[0])
+        if "1" in sols:
+            key = "1"
+        else:
+            key = "0"
+        q2 = sols[key][0]
+        q3 = sols[key][1]
         return np.array([q1, q2, q3])
     
     def move(self, xd):
