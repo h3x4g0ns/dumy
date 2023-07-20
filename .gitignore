@@ -1,4 +1,4 @@
 *.dylib
 *.app
 *MiDaS
-*.pyc
+*__pycache__

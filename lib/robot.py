@@ -6,10 +6,10 @@ class Robot(object):
         self.l1 = l1
         self.l2 = l2
         self.l3 = l3
+        self.port = port
         self.momentum = momentum
         self.connec = None
         self.prev_state = None
-        self.port = None
 
     def __enter__(self):
         """Opens serial connection to robot"""
@@ -75,10 +75,7 @@ class Robot(object):
         """
         sols = self.rik(self.l2, self.l3, (np.sqrt(xd[0]**2 + xd[1]**2), -xd[2]+self.l1))
         q1 = np.arctan2(xd[1], xd[0])
-        if "1" in sols:
-            key = "1"
-        else:
-            key = "0"
+        key = "1" if "1" in sols else "0"
         q2 = sols[key][0]
         q3 = sols[key][1]
         return np.array([q1, q2, q3])
@@ -89,12 +86,16 @@ class Robot(object):
 
         Args:
             xd (np.array): world coordinates (x, y, z)
+
+        Returns:
+            bool: True if successful, False otherwise
         """
         q = list(self.world2joint(xd))
         if np.isnan(q[0]) or np.isnan(q[1]) or np.isnan(q[2]):
-            return
+            return False
         if not self.prev_state:
             self.prev_state = q
         self.prev_state = self.ramp(self.prev_state, q)
         data = ",".join(map(str, self.prev_state)) + "\n"
         self.connec.write(data.encode())
+        return True
