@@ -2,6 +2,7 @@ import numpy as np
 import serial
 
 class Robot(object):
+    """Robot class for controlling and defining robot arm"""
     def __init__(self, l1, l2, l3, port, momentum=0.9):
         self.l1 = l1
         self.l2 = l2
@@ -36,7 +37,7 @@ class Robot(object):
     def rik(self, l1, l2, xd):
         """
         Solves inverse kinematics for robot from world coordinates to joint angles
-        https://motion.cs.illinois.edu/RoboticSystems/InverseKinematics.html
+        See: https://motion.cs.illinois.edu/RoboticSystems/InverseKinematics.html
 
         Args:
             l1 (float): length of first link
@@ -55,7 +56,8 @@ class Robot(object):
         elif c2 == -1:
             ret["1"] = np.array([np.arctan2(xd[1], xd[0]), np.pi])
         else:
-            q21, q22 = np.arccos(c2), -np.arccos(c2)
+            q21 = np.arccos(c2)
+            q22 = -np.arccos(c2)
             theta = np.arctan2(xd[1], xd[0])
             q11 = theta - np.arctan2(l2*np.sin(q21), l1 + l2*np.cos(q21))
             q12 = theta - np.arctan2(l2*np.sin(q22), l1 + l2*np.cos(q22))
@@ -74,11 +76,28 @@ class Robot(object):
             np.array: joint angles (q1, q2, q3)
         """
         sols = self.rik(self.l2, self.l3, (np.sqrt(xd[0]**2 + xd[1]**2), -xd[2]+self.l1))
-        q1 = np.arctan2(xd[1], xd[0])
         key = "1" if "1" in sols else "0"
+        q1 = np.arctan2(xd[1], xd[0])
         q2 = sols[key][0]
         q3 = sols[key][1]
         return np.array([q1, q2, q3])
+
+    def joint2world(self, q):
+        """
+        Converts joint angles to world coordinates
+
+        Args:
+            theta (np.array): joint angles (q1, q2, q3)
+
+        Returns:
+            np.array: world coordinates (x, y, z)
+        """
+        cq = np.cos(q)
+        sq = np.sin(q)
+        x = cq[0]*(cq[1]*(self.l2+cq[2]*self.l3)-sq[1]*sq[2]*self.l3)
+        y = sq[0]*(cq[1]*(self.l2+cq[2]*self.l3)-sq[1]*sq[2]*self.l3)
+        z = self.l1-sq[1]*(self.l2+cq[2]*self.l3)-cq[1]*sq[2]*self.l3
+        return np.array([x, y, z])
     
     def move(self, xd):
         """
@@ -99,3 +118,8 @@ class Robot(object):
         data = ",".join(map(str, self.prev_state)) + "\n"
         self.connec.write(data.encode())
         return True
+
+class Dummy(Robot):
+    def __init__(self, port):
+        """Configures 3DOF robot for Dummy"""
+        super().__init__(l1=1, l2=1, l3=1, port=port)
