@@ -1,6 +1,5 @@
 *.dylib
 *.app
-*MiDaS
 *__pycache__
 *.vscode
 *.DS_Store
