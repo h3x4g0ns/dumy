@@ -38,7 +38,7 @@ if __name__ == "__main__":
   while True:
     ret, frame = cap.read()
     depth = get_depth(frame)
-    norm_array = cv2.normalize(depth, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_8U)
+    norm_array = cv2.normalize(depth, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
     rgb_array = cv2.cvtColor(norm_array, cv2.COLOR_GRAY2RGB)
     cv2.imshow("frame", rgb_array)
     if cv2.waitKey(1) & 0xFF == ord('q'):
