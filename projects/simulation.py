@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-from lib.hardware.robot import Robot
+from lib.robot import Robot
 import numpy as np
 
 # testing out inverse kinematics
