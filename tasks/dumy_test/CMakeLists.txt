@@ -1,0 +1,8 @@
+add_executable(servo_control servo_control.cpp)
+
+pico_enable_stdio_usb(servo_control 1)
+pico_enable_stdio_uart(servo_control 0)
+
+pico_add_extra_outputs(servo_control)
+
+target_link_libraries(servo_control pico_stdlib hardware_pwm)
