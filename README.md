@@ -29,6 +29,42 @@ Control a 3/4 DOF robot arm to track a cat and constantly play laser pointer fet
 - Pass in joint angles to RP2040 for control through serial communication
   - Server code runs on jetson and will connect to RP2040 with USB-C cable
 
+## setup
+
+First installing pico sdk.
+
+```sh
+cd ~
+git clone -b master https://github.com/raspberrypi/pico-sdk.git
+cd pico-sdk
+git submodule update --init
+```
+
+Add following line to `.bashrc` or `.zshrc`.
+
+```sh
+export PICO_SDK=~/pico-sdk
+```
+
+Install toolchain for Pico projects
+
+```sh
+# DEBIAN
+sudo apt update
+sudo apt install cmake gcc-arm-none-eabi build-essential
+
+# MACOS
+# Install cmake
+brew install cmake
+
+# Install the arm eabi toolchain
+brew tap ArmMbed/homebrew-formulae
+brew install arm-none-eabi-gcc
+
+# The equivalent to build-essential on linux, you probably already have this.
+xcode-select --install
+```
+
 ## notes
 
 MiDaS Model: v3.0 DPTL-384
