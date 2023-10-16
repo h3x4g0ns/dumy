@@ -1,9 +1,12 @@
 import cv2
 import torch
+import sys
+import time
+import os
 
 # Load YOLOv5 for cat detection
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5n')  # for smaller/faster model you can use 'yolov5s'
+yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5l')  # for smaller/faster model you can use 'yolov5s'
 yolov5.to(device)
 yolov5.eval()
 
@@ -38,16 +41,24 @@ def draw_boxes(img, boxes):
 if __name__ == "__main__":
   cap = cv2.VideoCapture(0)
   while True:
-    ret, frame = cap.read()
+    start_time = time.time()
 
     # Cat Detection
+    ret, frame = cap.read()
     boxes = get_cat_bounding_boxes(frame)
     frame_with_boxes = draw_boxes(frame, boxes)
+
+    end_time = time.time()
+    fps = 1.0 / (end_time - start_time)
+    sys.stdout.write("\rFPS: {:.2f}".format(fps))
+    sys.stdout.flush()
     
-    cv2.imshow("Cat Detection", frame_with_boxes)
-    
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    if "DISPLAY" in os.environ:
+      cv2.imshow("Cat Detection", frame_with_boxes)
+      
+      if cv2.waitKey(1) & 0xFF == ord('q'):
+          break
 
   cap.release()
-  cv2.destroyAllWindows()
+  if "DISPLAY" in os.environ:
+    cv2.destroyAllWindows()
