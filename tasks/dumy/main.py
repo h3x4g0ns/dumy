@@ -45,11 +45,11 @@ def main():
 
     # individual threading for each model inference
     # NOTE: this is useless because of GIL
-    depth_thread = threading.Thread(target=depth_stub, args=(result, frame), daemon=True)
+    # depth_thread = threading.Thread(target=depth_stub, args=(result, frame), daemon=True)
     detect_thread = threading.Thread(target=detect_stub, args=(result, frame), daemon=True)
-    depth_thread.start()
+    # depth_thread.start()
     detect_thread.start()
-    depth_thread.join()
+    # depth_thread.join()
     detect_thread.join()
 
     # timing fps and printing w/ carriage return
@@ -59,7 +59,7 @@ def main():
     sys.stdout.flush()
 
     # only showing concated frames with proper env var
-    if "DISPLAY" in os.environ:
+    if "SHOW" in os.environ:
       depth = result["depth"]
       detect = result["detect"]
       detect = apply_mask_to_image(frame, detect)
@@ -72,7 +72,7 @@ def main():
 
   cap.release()
 
-  if "DISPLAY" in os.environ:
+  if "SHOW" in os.environ:
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
