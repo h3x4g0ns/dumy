@@ -39,7 +39,6 @@ def main():
   while True:
 
     ret, frame = cap.read()
-    result = {}
     start_time = time.time()
 
     detect = get_cat_mask(frame)
@@ -47,8 +46,6 @@ def main():
 
     # only showing concated frames with proper env var
     if "SHOW" in os.environ:
-      depth = result["depth"]
-      detect = result["detect"]
       detect = apply_mask_to_image(frame, detect)
       depth = cv2.cvtColor(depth, cv2.COLOR_GRAY2BGR)
       frame = combine_frames(depth, detect)
