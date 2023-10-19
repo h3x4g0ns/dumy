@@ -1,7 +1,6 @@
 from lib.depth import get_depth
 from lib.detect import get_cat_mask, apply_mask_to_image
 import cv2
-import threading
 import time
 import sys
 import os
@@ -43,20 +42,8 @@ def main():
     result = {}
     start_time = time.time()
 
-    # individual threading for each model inference
-    # NOTE: this is useless because of GIL
-    # depth_thread = threading.Thread(target=depth_stub, args=(result, frame), daemon=True)
-    detect_thread = threading.Thread(target=detect_stub, args=(result, frame), daemon=True)
-    # depth_thread.start()
-    detect_thread.start()
-    # depth_thread.join()
-    detect_thread.join()
-
-    # timing fps and printing w/ carriage return
-    end_time = time.time()
-    fps = 1.0 / (end_time - start_time)
-    sys.stdout.write("\rFPS: {:.2f}".format(fps))
-    sys.stdout.flush()
+    detect = get_cat_mask(frame)
+    depth = get_depth(frame)
 
     # only showing concated frames with proper env var
     if "SHOW" in os.environ:
@@ -66,6 +53,12 @@ def main():
       depth = cv2.cvtColor(depth, cv2.COLOR_GRAY2BGR)
       frame = combine_frames(depth, detect)
       cv2.imshow("detect and depth", frame)
+
+    # timing fps and printing w/ carriage return
+    end_time = time.time()
+    fps = 1.0 / (end_time - start_time)
+    sys.stdout.write("\rFPS: {:.2f}".format(fps))
+    sys.stdout.flush()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
