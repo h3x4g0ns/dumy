@@ -117,9 +117,12 @@ class Robot(object):
         self.prev_state = self.ramp(self.prev_state, q)
         data = ",".join(map(str, self.prev_state)) + "\n"
         self.connec.write(data.encode())
+        print(data + "\n")
         return True
 
 class Dummy(Robot):
     def __init__(self, port):
         """Configures 3DOF robot for Dummy"""
         super().__init__(l1=1, l2=1, l3=1, port=port)
+
+
