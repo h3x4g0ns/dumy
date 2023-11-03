@@ -53,15 +53,15 @@ void loop() {
         tmp.data[1] = (float)*strtok(data, ","); 
         tmp.data[2] = (float)*strtok(data, ",");
         Serial.println(tmp.data);
-        if () {
+        if (first == NULL) {
             first = malloc(sizeof(root));
-            first
+            first = &tmp;
             last = first;
         } else {
-
+            addLast(&tmp);
         }
     }
-    //serve first data element in queue
+    //serve first in queue
     if (first != NULL) {
         b.write(first->data[0]);
         l1.write(first->data[1]);
