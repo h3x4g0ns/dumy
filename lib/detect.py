@@ -3,47 +3,47 @@ import torch
 import sys
 import time
 import os
-from torchvision.models.segmentation import deeplabv3_mobilenet_v3_large
-from torchvision.transforms import functional as F
-import numpy as np
 
-# Load DeepLabV3 with MobileNetV3-Large backbone
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-model = deeplabv3_mobilenet_v3_large(pretrained=True, progress=True)  # Load pretrained weights
-model.to(device)
-model.eval()
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")
 
-def get_cat_mask(img):
-    """
-    Returns the mask of detected cats.
+def get_cat_mask(img, threshold=0.4):
+  """
+  Returns the bounding of detected cats.
 
-    Args:
-      img (np.array): the frame to detect cats in
+  Args:
+    img (np.array): the frame to detect cats in
+    threshold (int): confidence threshold for detecting cat
 
-    Returns:
-      np.array: a mask with cats highlighted
-    """
-    # Convert the image to tensor
-    img_tensor = F.to_tensor(img).unsqueeze(0).to(device)
+  Returns:
+    bboxs: (list) list of bounding boxes with cat in it
+  """
+  with torch.no_grad():
+    results = model(img)
+    output = results.pred[0]
+  bboxs = []
+  for det in output:
+    class_id = int(det[5])
+    conf = float(det[4])
+    x1, y1, x2, y2 = map(int, det[:4])
+    if model.names[class_id] == "cat" and conf >= threshold:
+      bboxs.append(x1, y1, x2, y2)
+  return bboxs
 
-    with torch.no_grad():
-        output = model(img_tensor)
-        output = output['out'][0]
-    output_predictions = torch.argmax(output, 0).cpu().numpy()
-
-    # '17' is usually the label for cats in COCO, '8' for VOC. Please verify this index from your dataset.
-    cat_label = 8
-    cat_mask = (output_predictions == cat_label)
-
-    return cat_mask
-
-def apply_mask_to_image(img, mask):
-  """Applies a mask to the image."""
-  overlay_color = [0, 255, 0]  # Green color for the mask
-  segmentation_overlay = np.zeros((*mask.shape, 3))
-  segmentation_overlay[mask] = overlay_color
-  masked_image = cv2.addWeighted(img, 1, segmentation_overlay.astype(np.uint8), 0.5, 0)
-  return masked_image
+def apply_mask_to_image(img, bboxs):
+  """
+  Draws bounding boxes on image
+  
+  Args: 
+    img (np.array): the frame to draw on
+    bbox (list): list of bounding boxes
+    
+  Returns:
+    img (np.array): annotate frame
+  """
+  for x1, y1, x2, y2 in bboxs:
+    color = (0, 255, 0)  # Green color
+    cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+  return img
 
 if __name__ == "__main__":
   cap = cv2.VideoCapture(0)
@@ -53,19 +53,20 @@ if __name__ == "__main__":
     # Cat Detection
     ret, frame = cap.read()
     cat_mask = get_cat_mask(frame)
-    # frame_with_mask = apply_mask_to_image(frame, cat_mask)
+    frame_with_mask = apply_mask_to_image(frame, cat_mask)
+    
+    if "SHOW" in os.environ:
+      cv2.imshow("Cat Detection", frame_with_mask)
 
     end_time = time.time()
     fps = 1.0 / (end_time - start_time)
     sys.stdout.write("\rFPS: {:.2f}".format(fps))
     sys.stdout.flush()
 
-    # if "DISPLAY" in os.environ:
-    #   cv2.imshow("Cat Detection", frame_with_mask)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
 
   cap.release()
-  # if "DISPLAY" in os.environ:
-  #   cv2.destroyAllWindows()
+  if "SHOW" in os.environ:
+    cv2.destroyAllWindows()
