@@ -1,9 +1,9 @@
 #include <Servo.h>
 #include "servo_control.h"
 
-#define L1_PORT 10
+#define L1_PORT 12
 #define L2_PORT 11
-#define B_PORT 12
+#define B_PORT 10
 
 Servo l1;
 Servo l2;
