@@ -9,33 +9,42 @@ Servo l1;
 Servo l2;
 Servo b;
 
-char data[6];
-struct node_p
-{
-    float data[3];
-} root;
+float strlfcopy(const char *src, size_t size) {
+    char dst[size];
+    int i = 0;
+    float res;
+    while (size > 1 && *src) {
+        dst[i] = *src++;
+        i++;
+        size--;
+    }
+    res = atof(dst);
+    return res;
+}
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     l1.attach(L1_PORT);
     l2.attach(L2_PORT);
     b.attach(B_PORT);
-    root.data[0] = 0;
-    root.data[1] = 0;
-    root.data[2] = 0;
     Serial.println("init");
 }
 
 void loop() {
     //Serial input
-    if (Serial.available()) {
-        Serial.readBytesUntil("\n", data, 6);
-        root.data[0] = (float)*strtok(data, ",");
-        root.data[1] = (float)*strtok(data, ",");
-        root.data[2] = (float)*strtok(data, ",");
-        //Serial.println("data: %f %f %f \n", root.data[0], root.data[1], root.data[2]);
-        b.write(root.data[0]);
-        l1.write(root.data[1]);
-        l2.write(root.data[2]);
+    int incoming = Serial.available();
+    if (incoming==9) {
+        char data[incoming];
+        float angles[3];
+        //read in serial data
+        Serial.readBytesUntil("\n", data, incoming);
+        //split string and convert to float
+        angles[0] = strlfcopy(strtok(data, ","), 5);
+        angles[1] = strlfcopy(strtok(data, ","), 5);
+        angles[2] = strlfcopy(strtok(data, ","), 5);
+        Serial.println(angles[0]);
+        b.write(angles[0]);
+        l1.write(angles[1]);
+        l2.write(angles[2]);
     }
 }

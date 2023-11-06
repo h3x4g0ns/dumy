@@ -125,4 +125,7 @@ class Dummy(Robot):
         """Configures 3DOF robot for Dummy"""
         super().__init__(l1=1, l2=1, l3=1, port=port)
 
-
+def main():
+    d = Dummy()
+if __name__ == "__main__":
+    main()
