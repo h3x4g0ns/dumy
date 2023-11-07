@@ -27,7 +27,7 @@ class World:
     self.grid_shape = np.asarray((20, 20, 20))
     self.grid = np.zeros(self.grid_shape, dtype=bool)
 
-  def im2cam(self, depth_frame, render=False):
+  def im2cam(self, depth_frame):
     """
     Given monocular estimnation of depth we want to take out coordinates in the 
     image space and project them to the camera space. This should give us a 3d 
@@ -36,57 +36,46 @@ class World:
     """
     depth_values = depth_frame.flatten()
     x = np.multiply(self.x, depth_values)
-    y = np.multiply(self.x, depth_values)
+    y = np.multiply(self.y, depth_values)
     points = np.vstack((x, y, depth_values))
     camera_pts = (self.intrinsic_inv @ points).T
-    if render:
-      self.__update_voxel_grid(camera_pts)
     return camera_pts
-
-  def __update_voxel_grid(self, camera_points):
-    """
-    We update the voxel grid with the given camera points. We first calculate 
-    the voxel indices for each camera point, clip them to fit in the bounds and 
-    update the voxel values if a point exists.
-    """
-    print(camera_points.min(), camera_points.max())
-    voxel_indices = ((camera_points / self.voxel_size) + (self.grid_shape[0] / 2)).astype(int)
-    voxel_indices = np.clip(voxel_indices, 0, self.grid_shape[0]-1)
-    self.grid.fill(False)
-    self.grid[voxel_indices] = True
-
-  def visualize_voxel_grid(self):
-    """
-    Visualized 3D voxel grid
-    """
-    ax = plt.figure().add_subplot(projection='3d')
-    ax.voxels(self.grid, edgecolor='k')
-    plt.show()
 
 if __name__ == "__main__":
   from depth import get_depth
   import cv2
+  import viser
 
   cap = cv2.VideoCapture(-1)
   world = World(height=480, width=640)
-  # while True:
-  ret, frame = cap.read()
-  depth = get_depth(frame)
-  pts = world.im2cam(depth, render=True)
-  fig = plt.figure()
-  ax = fig.add_subplot(111, projection='3d')
-  ax.scatter(pts[:, 0], pts[:, 1], pts[:, 2], s=1)
-  ax.set_xlabel('X Coordinate')
-  ax.set_ylabel('Y Coordinate')
-  ax.set_zlabel('Z Coordinate')
-  plt.show()
+  server = viser.ViserServer(share=True)
+  samples = 16
 
-  # TODO:
-  # use pyvista or vtk for proper scene rendering
+  while True:
+    ret, frame = cap.read()
+    depth = get_depth(frame) * 0.005
+    pts = world.im2cam(depth)
+    H, W, K = world.height, world.width, world.intrinsic
+    pts = pts[::samples, :]
+    colors = np.transpose(frame, axes=(1, 0, 2)).reshape(-1, 3)
+    colors = colors[::samples, :]
 
+    server.add_camera_frustum(
+      "/view",
+      fov=2 * np.arctan2(H / 2, K[0, 0]),
+      aspect=W/H,
+      scale=0.25,
+      image=frame,
+    )
 
-  # world.visualize_voxel_grid()
-  # # if cv2.waitKey(1) & 0xFF == ord('q'):
-  #   break
+    server.add_point_cloud(
+      "/reconstruction",
+      points=pts,
+      colors=colors,
+      point_size=0.01,
+    )
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
   cap.release()
   
