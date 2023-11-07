@@ -14,30 +14,23 @@ class World:
     self.__setup()
 
   def __setup(self):
-    # general vision variables
     self.intrinsic = [self.FX, 0, self.width/2, 0, self.FY, self.height/2, 0, 0, 1]
     self.intrinsic = np.asarray(self.intrinsic).reshape((3, 3)).astype(float)
     self.intrinsic_inv = np.linalg.inv(self.intrinsic)
     self.x, self.y = np.meshgrid(np.arange(self.width), np.arange(self.height))
     self.x = self.x.flatten()
     self.y = self.y.flatten()
-    
-    # render variables
-    self.voxel_size = 0.01
-    self.grid_shape = np.asarray((20, 20, 20))
-    self.grid = np.zeros(self.grid_shape, dtype=bool)
 
-  def im2cam(self, depth_frame):
+  def im2cam(self, depth_frame, step_size=16):
     """
-    Given monocular estimnation of depth we want to take out coordinates in the 
+    Given monocular estimation of depth we want to take out coordinates in the 
     image space and project them to the camera space. This should give us a 3d 
-    reprojection of the scene. Only populate voxel scene if we chose to render
-    the scene.
+    reprojection of the scene.
     """
     depth_values = depth_frame.flatten()
     x = np.multiply(self.x, depth_values)
     y = np.multiply(self.y, depth_values)
-    points = np.vstack((x, y, depth_values))
+    points = np.vstack((x, y, depth_values))[:, ::step_size]
     camera_pts = (self.intrinsic_inv @ points).T
     return camera_pts
 
@@ -45,20 +38,25 @@ if __name__ == "__main__":
   from depth import get_depth
   import cv2
   import viser
+  import time
+  import sys
 
   cap = cv2.VideoCapture(-1)
   world = World(height=480, width=640)
   server = viser.ViserServer(share=True)
-  samples = 16
+  step_size = 16
 
   while True:
+    start = time.time()
     ret, frame = cap.read()
     depth = get_depth(frame) * 0.005
-    pts = world.im2cam(depth)
+    pts = world.im2cam(depth, step_size=16)
     H, W, K = world.height, world.width, world.intrinsic
-    pts = pts[::samples, :]
     colors = np.transpose(frame, axes=(1, 0, 2)).reshape(-1, 3)
-    colors = colors[::samples, :]
+    colors = colors[::step_size, :]
+    fps = 1.0 / (time.time() - start)
+    sys.stdout.write("\rFPS: {:.2f}".format(fps))
+    sys.stdout.flush()
 
     server.add_camera_frustum(
       "/view",
