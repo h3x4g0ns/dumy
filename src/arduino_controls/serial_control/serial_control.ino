@@ -1,13 +1,13 @@
 #include <Servo.h>
 #include "servo_control.h"
 
-#define L1_PORT 12
+#define L1_PORT 10
 #define L2_PORT 11
-#define B_PORT 10
+#define L3_PORT 12
 
 Servo l1;
 Servo l2;
-Servo b;
+Servo l3;
 
 float strlfcopy(const char *src, size_t size) {
     char dst[size];
@@ -26,7 +26,7 @@ void setup() {
     Serial.begin(9600);
     l1.attach(L1_PORT);
     l2.attach(L2_PORT);
-    b.attach(B_PORT);
+    l3.attach(L3_PORT);
     Serial.println("init");
 }
 
@@ -43,8 +43,8 @@ void loop() {
         angles[1] = strlfcopy(strtok(data, ","), 5);
         angles[2] = strlfcopy(strtok(data, ","), 5);
         Serial.println(angles[0]);
-        b.write(angles[0]);
-        l1.write(angles[1]);
-        l2.write(angles[2]);
+        l1.write(angles[0]);
+        l2.write(angles[1]);
+        l3.write(angles[2]);
     }
 }

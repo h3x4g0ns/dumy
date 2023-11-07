@@ -109,7 +109,7 @@ class Robot(object):
         Returns:
             bool: True if successful, False otherwise
         """
-        q = list(self.world2joint(xd))
+        q = self.world2joint(xd)
         if np.isnan(q[0]) or np.isnan(q[1]) or np.isnan(q[2]):
             return False
         if not self.prev_state:
@@ -120,12 +120,22 @@ class Robot(object):
         print(data + "\n")
         return True
 
+# Rough Measurements from arm:
+# l1 = 4.13cm
+# l2 = 12cm
+# l3 = 12cm
+
 class Dummy(Robot):
     def __init__(self, port):
         """Configures 3DOF robot for Dummy"""
-        super().__init__(l1=1, l2=1, l3=1, port=port)
+        super().__init__(l1=4.13, l2=12, l3=12, port=port)
 
 def main():
-    d = Dummy()
+    d = Dummy("COM3")
+    d.__enter__()
+    xd = np.array([0,0,0])
+    d.move(xd)
+    print("Moved to: " + xd)
+
 if __name__ == "__main__":
     main()
