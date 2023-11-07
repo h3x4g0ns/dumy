@@ -18,7 +18,7 @@ class World:
     self.intrinsic = np.asarray(intrinsic, dtype=np.float32).reshape((3, 3))
     self.i2c = np.linalg.inv(self.intrinsic).T
     extrinsic = np.eye(4, dtype=np.float32)
-    self.c2w = extrinsic
+    self.c2w = np.linalg.inv(extrinsic).T
     x, y = np.meshgrid(np.arange(self.width), np.arange(self.height)).astype(np.float32)
     self.x = x.flatten()
     self.y = y.flatten()
@@ -35,16 +35,16 @@ class World:
     points = np.hstack((x, y, depth_values))[::step_size, :]
     camera_pts = self.im2cam(points)
     return camera_pts
-
+ 
   def im2cam(self, points):
     """
-    Multiply image points by inverse of intrinsic matrix to get camera coordinates.
+    Multiply pixel coordinates with inverse of intrinsic matrix to get camera coordinates.
     """
     return points @ self.i2c
   
   def to_world(self, depth_frame, step_size=16):
     """
-    Reconctruct entire world view img -> camera -> world
+    Reconstruct entire world view img -> camera -> world
     We take ever coordinate from the depth frame and reconstruct the scene.
     """
     camera_pts = self.to_cam(depth_frame, step_size)
@@ -53,7 +53,7 @@ class World:
 
   def cam2world(self, points):
     """
-    Multiple camera points by inverse of extrinsic matrix to get world coordinates.
+    Multiple camera points with inverse of extrinsic matrix to get world coordinates.
     """
     ones = np.ones((points.shape[0], 1), dtype=np.float32)
     points = np.hstack((points, ones))
