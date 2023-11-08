@@ -19,9 +19,9 @@ class World:
     self.i2c = np.linalg.inv(self.intrinsic).T
     extrinsic = np.eye(4, dtype=np.float32)
     self.c2w = np.linalg.inv(extrinsic).T
-    x, y = np.meshgrid(np.arange(self.width), np.arange(self.height)).astype(np.float32)
-    self.x = x.flatten()
-    self.y = y.flatten()
+    x, y = np.meshgrid(np.arange(self.width), np.arange(self.height))
+    self.x = x.flatten().astype(np.float32)
+    self.y = y.flatten().astype(np.float32)
 
   def to_cam(self, depth_frame, step_size=16):
     """
@@ -32,8 +32,8 @@ class World:
     depth_values = depth_frame.flatten()
     x = np.multiply(self.x, depth_values)
     y = np.multiply(self.y, depth_values)
-    points = np.hstack((x, y, depth_values))[::step_size, :]
-    camera_pts = self.im2cam(points)
+    points = np.vstack((x, y, depth_values)).T
+    camera_pts = self.im2cam(points[::step_size, :])
     return camera_pts
  
   def im2cam(self, points):
@@ -48,7 +48,7 @@ class World:
     We take ever coordinate from the depth frame and reconstruct the scene.
     """
     camera_pts = self.to_cam(depth_frame, step_size)
-    world_pts = self.cam2world(self, camera_pts)
+    world_pts = self.cam2world(camera_pts)
     return world_pts
 
   def cam2world(self, points):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
   server = viser.ViserServer(share=True)
   step_size = 16
   wxyz = viser.transforms.SO3.from_matrix(c2w[:3, :3]).wxyz
-  position = c2w[:3, 3],
+  position = c2w[:3, 3]
 
   # here we transform all pixels coordinates from the image
   # in production, we only need to project the points of the bounding box of the cat
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     start = time.time()
     ret, frame = cap.read()
     depth = get_depth(frame) * 0.005
-    pts = world.im2cam(depth, step_size=16)
+    pts = world.to_world(depth, step_size=16)
     colors = np.transpose(frame, axes=(1, 0, 2)).reshape(-1, 3)
     colors = colors[::step_size, :]
     fps = 1.0 / (time.time() - start)
