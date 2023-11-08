@@ -46,7 +46,7 @@ void loop() {
     //read in serial data until the terminating character
     if (Serial.available()>0) {
         char incoming = Serial.read();
-        if (incoming == 'r') {
+        if (incoming == '\n') {
             terminated = true;
             i = 0;
         } else {
