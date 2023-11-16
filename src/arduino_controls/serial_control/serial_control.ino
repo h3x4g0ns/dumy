@@ -1,8 +1,8 @@
 #include <Servo.h>
 #include "servo_control.h"
 
-#define L1_PORT 10
-#define L2_PORT 11
+#define L1_PORT 11
+#define L2_PORT 10
 #define L3_PORT 12
 
 Servo l1;
@@ -46,7 +46,7 @@ void loop() {
     //read in serial data until the terminating character
     if (Serial.available()>0) {
         char incoming = Serial.read();
-        if (incoming == '\n') {
+        if (incoming == 'r') {
             terminated = true;
             i = 0;
         } else {
@@ -57,9 +57,9 @@ void loop() {
 
     if (terminated) {
         float angles[3];
-        angles[0] = strlfcopy(strtok(data, ","), 5);
-        angles[1] = strlfcopy(strtok(NULL, ","), 5);
-        angles[2] = strlfcopy(strtok(NULL, ","), 5);
+        angles[0] = strlfcopy(strtok(data, ", "), 5);
+        angles[1] = strlfcopy(strtok(NULL, ", "), 5);
+        angles[2] = strlfcopy(strtok(NULL, ", "), 5);
         l1.write(angles[0]);
         l2.write(angles[1]);
         l3.write(angles[2]);
