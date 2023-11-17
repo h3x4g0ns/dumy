@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import viser
 
 class World:
   def __init__(self, height, width, camera="c920", render=False):
@@ -145,7 +145,6 @@ class World:
 if __name__ == "__main__":
   from depth import get_depth
   import cv2
-  import viser
   import time
   import sys
 
