@@ -131,11 +131,13 @@ class Dummy(Robot):
         super().__init__(l1=4.13, l2=12, l3=12, port=port)
 
 def main():
-    d = Dummy("COM3")
-    d.__enter__()
-    xd = np.array([0,0,0])
-    d.move(xd)
-    print("Moved to: " + xd)
+    port = "COM3"
+    angles = np.array([[45,45,45],[0,0,0],[90,30,90],[0,45,90]])
+    with Dummy(port) as d:
+        for i in angles:
+            xd = angles[i]
+            d.move(xd)
+            print("Moved to: " + xd)
 
 if __name__ == "__main__":
     main()
