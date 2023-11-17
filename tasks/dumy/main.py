@@ -6,18 +6,6 @@ import sys
 import os
 import numpy as np
 
-def depth_stub(buffer, frame):
-  """
-  Takes frame and sends inference to model to get pixel-wise depth
-  """
-  buffer["depth"] = get_depth(frame)
-
-def detect_stub(buffer, frame):
-  """
-  Takes frame and sends inference to model to get cat segmentation
-  """
-  buffer["detect"] = get_cat_mask(frame)
-
 def combine_frames(frame1, frame2):
   """
   Takes 2 frames and stiches them side by side
@@ -41,6 +29,7 @@ def main():
     ret, frame = cap.read()
     start_time = time.time()
 
+    # get depth and cat bounding boxes
     detect = get_cat_mask(frame)
     depth = get_depth(frame)
 
