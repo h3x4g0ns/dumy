@@ -112,7 +112,7 @@ class Robot(object):
         q = self.world2joint(xd)
         if np.isnan(q[0]) or np.isnan(q[1]) or np.isnan(q[2]):
             return False
-        if not self.prev_state:
+        if self.prev_state is None:
             self.prev_state = q
         self.prev_state = self.ramp(self.prev_state, q)
         data = ",".join(map(str, self.prev_state)) + "\n"
@@ -132,12 +132,12 @@ class Dummy(Robot):
 
 def main():
     port = "COM3"
-    angles = np.array([[45,45,45],[0,0,0],[90,30,90],[0,45,90]])
+    angles = np.array([[1,1,1],[0,0,0],[2,2,2]])
     with Dummy(port) as d:
-        for i in angles:
+        for i in range(0, len(angles)):
             xd = angles[i]
             d.move(xd)
-            print("Moved to: " + xd)
+            print("Moved to: ", xd)
 
 if __name__ == "__main__":
     main()
