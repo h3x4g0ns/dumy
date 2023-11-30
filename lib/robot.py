@@ -1,5 +1,6 @@
 import numpy as np
 import serial
+from time import sleep
 
 class Robot(object):
     """Robot class for controlling and defining robot arm"""
@@ -115,9 +116,9 @@ class Robot(object):
         if self.prev_state is None:
             self.prev_state = q
         self.prev_state = self.ramp(self.prev_state, q)
-        data = ",".join(map(str, self.prev_state)) + "\n"
+        data = ",".join(map(str, self.prev_state)) + "r"
         self.connec.write(data.encode())
-        print(data + "\n")
+        print(data + "r")
         return True
 
 # Rough Measurements from arm:
@@ -132,11 +133,12 @@ class Dummy(Robot):
 
 def main():
     port = "COM3"
-    angles = np.array([[1,1,1],[0,0,0],[2,2,2]])
+    angles = np.array([[1,1,1],[0,0,0],[10,2,9]])
     with Dummy(port) as d:
         for i in range(0, len(angles)):
             xd = angles[i]
             d.move(xd)
+            sleep(4)
             print("Moved to: ", xd)
 
 if __name__ == "__main__":

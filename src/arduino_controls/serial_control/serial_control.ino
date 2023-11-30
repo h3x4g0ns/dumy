@@ -10,8 +10,8 @@ Servo l2;
 Servo l3;
 
 int i = 0;
-char data[16];
-bool terminated;
+volatile char data[16];
+volatile bool terminated;
 
 float strlfcopy(const char *src, size_t size) {
     char dst[size];
@@ -28,7 +28,7 @@ float strlfcopy(const char *src, size_t size) {
         size--;
     }
     res = atof(dst);
-    Serial.println(dst);
+    //Serial.println(res);
     return res * n;
 }
 
@@ -56,6 +56,8 @@ void loop() {
     }
 
     if (terminated) {
+        Serial.println(data);
+        Serial.print('end');
         float angles[3];
         angles[0] = strlfcopy(strtok(data, ", "), 5);
         angles[1] = strlfcopy(strtok(NULL, ", "), 5);
