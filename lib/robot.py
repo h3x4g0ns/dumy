@@ -78,9 +78,9 @@ class Robot(object):
         """
         sols = self.rik(self.l2, self.l3, (np.sqrt(xd[0]**2 + xd[1]**2), -xd[2]+self.l1))
         key = "1" if "1" in sols else "0"
-        q1 = np.arctan2(xd[1], xd[0])
-        q2 = sols[key][0]
-        q3 = sols[key][1]
+        q1 = np.rad2deg(np.arctan2(xd[1], xd[0]))
+        q2 = np.rad2deg(sols[key][0])
+        q3 = np.rad2deg(sols[key][1])
         return np.array([q1, q2, q3])
 
     def joint2world(self, q):
@@ -115,10 +115,11 @@ class Robot(object):
             return False
         if self.prev_state is None:
             self.prev_state = q
-        self.prev_state = self.ramp(self.prev_state, q)
-        data = ",".join(map(str, self.prev_state)) + "r"
+        #self.prev_state = self.ramp(self.prev_state, q)
+        self.prev_state = q
+        data = ",".join(map(str, q)) + "r"
         self.connec.write(data.encode())
-        print(data + "r")
+        print(data)
         return True
 
 # Rough Measurements from arm:
@@ -133,13 +134,13 @@ class Dummy(Robot):
 
 def main():
     port = "COM3"
-    angles = np.array([[1,1,1],[0,0,0],[10,2,9]])
+    angles = np.array([[1,1,1],[0,0,0],[1,1,9],[18,0,9]])
     with Dummy(port) as d:
         for i in range(0, len(angles)):
             xd = angles[i]
             d.move(xd)
-            sleep(4)
-            print("Moved to: ", xd)
+            sleep(1)
+            #print("Moved to: ", xd)
 
 if __name__ == "__main__":
     main()

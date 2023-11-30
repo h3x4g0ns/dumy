@@ -1,8 +1,8 @@
 #include <Servo.h>
 #include "servo_control.h"
 
-#define L1_PORT 11
-#define L2_PORT 10
+#define L1_PORT 10
+#define L2_PORT 11
 #define L3_PORT 12
 
 Servo l1;
@@ -37,7 +37,7 @@ void setup() {
     l1.attach(L1_PORT);
     l2.attach(L2_PORT);
     l3.attach(L3_PORT);
-    Serial.println("init");
+    //Serial.println("init");
     terminated = false;
     data[0] = '\0';
 }
@@ -56,12 +56,11 @@ void loop() {
     }
 
     if (terminated) {
-        Serial.println(data);
-        Serial.print('end');
         float angles[3];
         angles[0] = strlfcopy(strtok(data, ", "), 5);
         angles[1] = strlfcopy(strtok(NULL, ", "), 5);
         angles[2] = strlfcopy(strtok(NULL, ", "), 5);
+        //Serial.println(angles[0]);
         l1.write(angles[0]);
         l2.write(angles[1]);
         l3.write(angles[2]);
