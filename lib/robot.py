@@ -128,9 +128,9 @@ class Robot(object):
         Args:
             xd (np.array): world coordinates (x, y, z)
         """
-        # q = np.arctan2(xd[1], xd[0])/np.pi*180
-        q = str(int(xd)) + ",0,0r"
-        print(q)
+        q = np.arctan2(xd[1], xd[0])/np.pi*180
+        q = str(int(q)) + ",0,0r"
+        print("moving", q)
         self.connec.write(q.encode())
 
 # Rough Measurements from arm:
@@ -143,7 +143,8 @@ class Dummy(Robot):
         """Configures 3DOF robot for Dummy"""
         super().__init__(l1=4.13, l2=12, l3=12, port=port)
 
-def main():
+
+if __name__ == "__main__":
     port = "COM3"
     coords = [0, -90, 0, 90, 0]
     with Dummy(port) as d:
@@ -157,6 +158,3 @@ def main():
     #         xd = angles[i]
     #         d.move(xd)
     #         sleep(2)
-
-if __name__ == "__main__":
-    main()
