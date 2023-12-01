@@ -5,19 +5,19 @@ from machine import Pin, UART, Servo
 L1_PORT = 10
 L2_PORT = 11
 L3_PORT = 12
-OFFSET = 90.0
+OFFSET = 90
 
 # Initialize Servo objects
 l1 = Servo(Pin(L1_PORT))
 l2 = Servo(Pin(L2_PORT))
 l3 = Servo(Pin(L3_PORT))
 
-# Function to parse float from string
-def strlfcopy(src, size):
+# Function to parse into from serial in
+def to_int(src, size):
     try:
-        return float(src[:size])
+        return int(src[:size])
     except ValueError:
-        return 0.0
+        return 0
 
 # Servo control function
 def servo_control():
@@ -40,9 +40,9 @@ def servo_control():
 
         if terminated:
             data_str = data.decode('utf-8').split(',')
-            angles = [strlfcopy(data_str[0], 5) + OFFSET,
-                      strlfcopy(data_str[1], 5) + OFFSET,
-                      strlfcopy(data_str[2], 5) + OFFSET]
+            angles = [to_int(data_str[0], 5) + OFFSET,
+                      to_int(data_str[1], 5) + OFFSET,
+                      to_int(data_str[2], 5) + OFFSET]
 
             l1.angle(angles[0])
             l2.angle(angles[1])
@@ -54,4 +54,5 @@ def servo_control():
 # Start the servo control thread on core 0
 _thread.start_new_thread(servo_control, ())
 
-# You can add your piezo control code for core 1 here
+# TODO: piezo buzzer control
+# add your piezo control code for core 1 here
