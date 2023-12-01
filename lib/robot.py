@@ -115,8 +115,7 @@ class Robot(object):
             return False
         if self.prev_state is None:
             self.prev_state = q
-        #self.prev_state = self.ramp(self.prev_state, q)
-        self.prev_state = q
+        self.prev_state = self.ramp(self.prev_state, q)
         data = ",".join(map(str, q)) + "r"
         self.connec.write(data.encode())
         print(data)
@@ -134,12 +133,12 @@ class Dummy(Robot):
 
 def main():
     port = "COM3"
-    angles = np.array([[1,1,1],[0,0,0],[1,1,9],[18,0,9]])
+    angles = np.array([[0,0,0]])
     with Dummy(port) as d:
         for i in range(0, len(angles)):
             xd = angles[i]
             d.move(xd)
-            sleep(1)
+            sleep(2)
             #print("Moved to: ", xd)
 
 if __name__ == "__main__":
