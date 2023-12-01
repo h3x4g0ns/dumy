@@ -1,5 +1,5 @@
+import _thread
 from machine import Pin, UART, Servo
-import time
 
 # Constants
 L1_PORT = 10
@@ -19,33 +19,39 @@ def strlfcopy(src, size):
     except ValueError:
         return 0.0
 
-# Setup UART for serial communication
-uart = UART(1, baudrate=9600)
+# Servo control function
+def servo_control():
+    # Setup UART for serial communication
+    uart = UART(1, baudrate=9600)
 
-# Main loop
-terminated = False
-data = bytearray(16)
-i = 0
+    terminated = False
+    data = bytearray(16)
+    i = 0
 
-while True:
-    if uart.any():
-        incoming = uart.read(1)
-        if incoming == b'r':
-            terminated = True
-            i = 0
-        else:
-            data[i] = incoming[0]
-            i += 1
+    while True:
+        if uart.any():
+            incoming = uart.read(1)
+            if incoming == b'r':
+                terminated = True
+                i = 0
+            else:
+                data[i] = incoming[0]
+                i += 1
 
-    if terminated:
-        data_str = data.decode('utf-8').split(',')
-        angles = [strlfcopy(data_str[0], 5) + OFFSET,
-                  strlfcopy(data_str[1], 5) + OFFSET,
-                  strlfcopy(data_str[2], 5) + OFFSET]
+        if terminated:
+            data_str = data.decode('utf-8').split(',')
+            angles = [strlfcopy(data_str[0], 5) + OFFSET,
+                      strlfcopy(data_str[1], 5) + OFFSET,
+                      strlfcopy(data_str[2], 5) + OFFSET]
 
-        l1.angle(angles[0])
-        l2.angle(angles[1])
-        l3.angle(angles[2])
+            l1.angle(angles[0])
+            l2.angle(angles[1])
+            l3.angle(angles[2])
 
-        data = bytearray(16)
-        terminated = False
+            data = bytearray(16)
+            terminated = False
+
+# Start the servo control thread on core 0
+_thread.start_new_thread(servo_control, ())
+
+# You can add your piezo control code for core 1 here
