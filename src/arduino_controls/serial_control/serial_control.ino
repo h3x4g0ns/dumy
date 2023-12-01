@@ -4,6 +4,7 @@
 #define L1_PORT 10
 #define L2_PORT 11
 #define L3_PORT 12
+#define OFFSET 90.0
 
 Servo l1;
 Servo l2;
@@ -38,6 +39,9 @@ void setup() {
     l2.attach(L2_PORT);
     l3.attach(L3_PORT);
     //Serial.println("init");
+    l1.write(90);
+    l2.write(90);
+    l3.write(90);
     terminated = false;
     data[0] = '\0';
 }
@@ -57,10 +61,10 @@ void loop() {
 
     if (terminated) {
         float angles[3];
-        angles[0] = strlfcopy(strtok(data, ", "), 5);
-        angles[1] = strlfcopy(strtok(NULL, ", "), 5);
-        angles[2] = strlfcopy(strtok(NULL, ", "), 5);
-        //Serial.println(angles[0]);
+        angles[0] = strlfcopy(strtok(data, ", "), 5) + OFFSET;
+        angles[1] = strlfcopy(strtok(NULL, ", "), 5) + OFFSET;
+        angles[2] = strlfcopy(strtok(NULL, ", "), 5) + OFFSET;
+        Serial.println(angles[0]);
         l1.write(angles[0]);
         l2.write(angles[1]);
         l3.write(angles[2]);

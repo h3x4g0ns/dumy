@@ -50,7 +50,7 @@ class Robot(object):
         """
         c2 = (np.linalg.norm(xd)**2 - l1**2 - l2**2)/(2*l1*l2)
         ret = {}
-        if c2 > 1:
+        if np.abs(c2) > 1:
             ret["0"] = np.array([np.nan, np.nan])
         elif c2 == 1:
             ret["1"] = np.array([np.arctan2(xd[1], xd[0]), 0])
@@ -121,6 +121,18 @@ class Robot(object):
         print(data)
         return True
 
+    def move_base(self, xd):
+        """
+        Moves base of the robot given a destination coordinate
+
+        Args:
+            xd (np.array): world coordinates (x, y, z)
+        """
+        # q = np.arctan2(xd[1], xd[0])/np.pi*180
+        q = str(int(xd)) + ",0,0r"
+        print(q)
+        self.connec.write(q.encode())
+
 # Rough Measurements from arm:
 # l1 = 4.13cm
 # l2 = 12cm
@@ -133,13 +145,18 @@ class Dummy(Robot):
 
 def main():
     port = "COM3"
-    angles = np.array([[0,0,0]])
+    coords = [0, -90, 0, 90, 0]
     with Dummy(port) as d:
-        for i in range(0, len(angles)):
-            xd = angles[i]
-            d.move(xd)
-            sleep(2)
-            #print("Moved to: ", xd)
+        for coord in coords:
+            d.move_base(coord)
+            sleep(3)
+
+    # coords = np.array([[0,0,0], [18, 0, 20]])
+    # with Dummy(port) as d:
+    #     for i in range(0, len(angles)):
+    #         xd = angles[i]
+    #         d.move(xd)
+    #         sleep(2)
 
 if __name__ == "__main__":
     main()
