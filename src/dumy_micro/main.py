@@ -1,16 +1,11 @@
 import _thread
-from machine import Pin, UART, Servo
+from machine import Pin, UART, PWM
 
 # Constants
 L1_PORT = 10
 L2_PORT = 11
 L3_PORT = 12
 OFFSET = 90
-
-# Initialize Servo objects
-l1 = Servo(Pin(L1_PORT))
-l2 = Servo(Pin(L2_PORT))
-l3 = Servo(Pin(L3_PORT))
 
 # Function to parse into from serial in
 def to_int(src, size):
@@ -19,10 +14,19 @@ def to_int(src, size):
     except ValueError:
         return 0
 
+#clamps the input value, which can range between inmin and inmax, between outmin and outmax.
+def clampPWM(i, inMin, inMax, outMin, outMax):
+    return max(min((i - inMin)*(outMax - outMin)//(inMax-inMin) + outMin, outMax), outMin)
+
 # Servo control function
 def servo_control():
     # Setup UART for serial communication
     uart = UART(1, baudrate=9600)
+
+    #set up PWM pins
+    l1 = PWM(L1_PORT, freq=50, duty_ns=0)
+    l2 = PWM(L2_PORT, freq=50, duty_ns=0)
+    l3 = PWM(L3_PORT, freq=50, duty_ns=0)
 
     terminated = False
     data = bytearray(16)
@@ -40,15 +44,14 @@ def servo_control():
 
         if terminated:
             data_str = data.decode('utf-8').split(',')
-            angles = [to_int(data_str[0], 5) + OFFSET,
-                      to_int(data_str[1], 5) + OFFSET,
-                      to_int(data_str[2], 5) + OFFSET]
+            angles = [clampPWM(data_str[0], -90, 90, 0, 65535),
+                      clampPWM(data_str[1], -90, 90, 0, 65535),
+                      clampPWM(data_str[2], -90, 90, 0, 65535)]
 
-            l1.angle(angles[0])
-            l2.angle(angles[1])
-            l3.angle(angles[2])
-
-            data = bytearray(16)
+            l1.duty_u16(angles[0])
+            l2.duty_u16(angles[1])
+            l3.duty_u16(angles[2])
+            
             terminated = False
 
 # Start the servo control thread on core 0
