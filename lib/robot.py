@@ -34,6 +34,28 @@ class Robot(object):
             np.array: next position
         """
         return prev + self.momentum*(pos - prev)
+    
+    def endEffectorToWorld(self, endToFloor):
+        """
+        Given end effector coordinates, length of arm 2, and end effector to floor distance,
+        we want to project the end effector onto the floor and then calculate the world 
+        coordinates of the end effector.
+        """
+        x_c, y_c = (0, 0)
+        x_t, y_t = endToFloor[0], endToFloor[1]
+
+        # Distance from circle center to the point on the tangent line
+        # Length from the tangent point to the point on the tangent line
+        # Ratio to find the tangent point
+        dist = np.sqrt((x_t - x_c)**2 + (y_t - y_c)**2)
+        l = np.sqrt(dist**2 - self.l1**2)
+        ratio = l / dist
+
+        # Coordinates of the tangent point
+        x = x_c + ratio * (x_t - x_c)
+        y = y_c + ratio * (y_t - y_c)
+
+        return np.asarray((x, y, z))
 
     def rik(self, l1, l2, xd):
         """
@@ -138,11 +160,10 @@ class Robot(object):
 # l2 = 12cm
 # l3 = 12cm
 
-class Dummy(Robot):
+class Dumy(Robot):
     def __init__(self, port):
         """Configures 3DOF robot for Dummy"""
         super().__init__(l1=4.13, l2=12, l3=12, port=port)
-
 
 if __name__ == "__main__":
     port = "COM3"
@@ -150,11 +171,4 @@ if __name__ == "__main__":
     with Dummy(port) as d:
         for coord in coords:
             d.move_base(coord)
-            sleep(3)
-
-    # coords = np.array([[0,0,0], [18, 0, 20]])
-    # with Dummy(port) as d:
-    #     for i in range(0, len(angles)):
-    #         xd = angles[i]
-    #         d.move(xd)
-    #         sleep(2)
+            sleep(1)
