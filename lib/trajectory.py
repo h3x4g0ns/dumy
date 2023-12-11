@@ -1,11 +1,5 @@
-from sympy import symbols, cos, sin, pi, simplify, solve
 import numpy as np
-
-# Define symbolic variables
-# theta1, theta2, theta3 = symbols('theta1 theta2 theta3')
-
-# Robot arm parameters (lengths of the links)
-# L1, L2, L3 = symbols('L1 L2 L3')
+from collections import queue
 
 class Trajectory:
     def __init__(self, robot):
@@ -14,41 +8,48 @@ class Trajectory:
         self.l2 = robot.l2
         self.l3 = robot.l3
         self.prev_cat_pos = None
-        self.cat_pos_avg = None
+        self.queue = queue()
 
     def calculate(self, cat_pos):
+        """
+        Uses a few different methods to calculate the next position of the robot
+        given the current position of the cat. We want to make sure we never blind
+        the cat and that we are always moving away from the cat. We can use the 
+        previous position of the cat to calculate the next position of the cat since
+        we assume the cat travels in a line. We also want to activate taunting mode
+        if the cat has not moved enough.
+
+        Args:
+            cat_pos (np.array): position of the cat
+
+        Returns:
+            np.array: next position of the robot
+        """
         # Forward kinematics equations (position of the end effector)
-        x, y= self.robot.joint2world(self.robot.prev_state)
+        x, y, z = self.robot.joint2world(self.robot.prev_state)
 
-        #find new desired laser pos
+        # find new desired laser pos
         laserPos = cat_pos + np.linalg.norm(cat_pos - self.prev_cat_pos)*20
-        desired_x, desired_y = self.robot.endEffectorToWorld(laserPos)
+        desired_x, desired_y, desired_z = self.robot.endEffectorToWorld(laserPos)
 
-        #calculate cat activation
-        if (self.cat_pos_avg == None):
-            #send code for piezo buzzer
-            self.cat_pos_avg = cat_pos
+        # calculate cat activation
+        if (self.queue.queueSize < 5):
+            # send code for piezo buzzer
+            self.queue = cat_pos + 10
+            self.prev_cat_pos = cat_pos + 10
+        elif np.abs(np.std(self.queue)) < 0.5:
+            # send code for taunting
             self.prev_cat_pos = cat_pos
+            self.queue.push(cat_pos)
+            return np.asarray((0, 0, 0))
         else:
-            self.cat_pos_avg = (self.cat_pos_avg + cat_pos) / 2
             self.prev_cat_pos = cat_pos
-
-        # Solve inverse kinematics equations to find joint angles
-        inverse_kinematics_equations = [
-            simplify(x - desired_x),
-            simplify(y - desired_y)
-        ]
+        
+        # updating history
+        if self.queue.queueSize >= 5:
+            self.queue.pop()
+            self.queue.push(cat_pos)
 
         # Solve for joint angles
-        solutions = solve(inverse_kinematics_equations, [self.l1, self.l2, self.l3])
-
-
-def __main__():
-    # read positions from the vision stack
-    # while True:
-    #     desired_x = 
-    #     desired_y = 
-    #     movement_angle = trajectory_engine(desired_x, desired_y)
-    # 
-    pass
-
+        solution = self.robot.world2joint(np.asarray((desired_x, desired_y, desired_z)))
+        return solution

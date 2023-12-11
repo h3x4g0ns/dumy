@@ -35,27 +35,33 @@ class Robot(object):
         """
         return prev + self.momentum*(pos - prev)
     
-    def endEffectorToWorld(self, endToFloor):
+    def endEffectorToWorld(self, baseAngle, endToFloor):
         """
         Given end effector coordinates, length of arm 2, and end effector to floor distance,
         we want to project the end effector onto the floor and then calculate the world 
         coordinates of the end effector.
         """
-        x_c, y_c = (0, 0)
-        x_t, y_t = endToFloor[0], endToFloor[1]
+        x_c, z_c = (0, 0)
+        x_t, z_t = endToFloor[1], endToFloor[2]
+
+        # Assuming baseAngle is the angle at which the base of the robotic arm is rotated
+        # Assuming the rotation is around the z-axis
+        rotation_matrix = np.array([[np.cos(baseAngle), -np.sin(baseAngle), 0],
+                                    [np.sin(baseAngle), np.cos(baseAngle), 0],
+                                    [0, 0, 1]])
 
         # Distance from circle center to the point on the tangent line
         # Length from the tangent point to the point on the tangent line
         # Ratio to find the tangent point
-        dist = np.sqrt((x_t - x_c)**2 + (y_t - y_c)**2)
+        dist = np.sqrt((x_t - x_c)**2 + (z_t - z_c)**2)
         l = np.sqrt(dist**2 - self.l1**2)
         ratio = l / dist
 
         # Coordinates of the tangent point
         x = x_c + ratio * (x_t - x_c)
-        y = y_c + ratio * (y_t - y_c)
-
-        return np.asarray((x, y, z))
+        y = endToFloor[1]
+        z = z_c + ratio * (z_t - z_c)
+        return np.array([x, y, z])
 
     def rik(self, l1, l2, xd):
         """
