@@ -148,7 +148,8 @@ if __name__ == "__main__":
   import time
   import sys
 
-  # TODO: need to add the extrinsic matrix for proper pose
+  # we are putting the webcam's origin at the center of the robot
+  # a little hacky but it allows us to use the same coordinate system
   cap = cv2.VideoCapture(-1)
   world = World(height=480, width=640, render=True)
   step_size = 16
