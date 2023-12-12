@@ -41,8 +41,24 @@ class Robot(object):
         we want to project the end effector onto the floor and then calculate the world 
         coordinates of the end effector.
         """
+
+        #translate from 3d coords to uv
+        U = np.dot(np.array((0,0,1)), np.dot(np.linalg.norm(endToFloor), np.array((0,0,1))))
+        V = np.dot(U, np.linalg.norm(endToFloor))
+
+        M = np.dot(np.linalg.inv(np.array([[0, U[0], V[0], endToFloor[0]],
+                                    [0, U[1], V[1], endToFloor[1]],
+                                    [1, U[2], V[2], endToFloor[2]],
+                                    [1, 1, 1, 1]])), 
+                                    np.array([[0,1,0,0],
+                                              [0,0,1,0],
+                                              [0,0,0,1],
+                                              [1,1,1,1]]))
+        
+        coord2D = np.dot(M, endToFloor)
+
         x_c, z_c = (0, 0)
-        x_t, z_t = endToFloor[1], endToFloor[2]
+        x_t, z_t = coord2D[0], coord2D[1]
 
         # Assuming baseAngle is the angle at which the base of the robotic arm is rotated
         # Assuming the rotation is around the z-axis
@@ -59,9 +75,11 @@ class Robot(object):
 
         # Coordinates of the tangent point
         x = x_c + ratio * (x_t - x_c)
-        y = endToFloor[1]
         z = z_c + ratio * (z_t - z_c)
-        return np.array([x, y, z])
+
+        #translate back into 3d coords
+        res = np.dot(np.linalg.inv(M), np.array((x,z)))
+        return res
 
     def rik(self, l1, l2, xd):
         """
