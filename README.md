@@ -14,12 +14,9 @@ Control a 3/4 DOF robot arm to track a cat and constantly play laser pointer fet
 - We want to be able to track a bounding box over the moving cat
   - Use something like PyTorch YOLOv5 to get bounding box over entity identified as cat
     - We can use the center point of the cat
-    - OR we can find point on boundary of bounding box closest to the laser pointer
-- We also want to be able to track the laser pointer
-  - Since we know that the laser pointer is a red dot, use image constrasting to get coordinate of the red-most point
+    - OR we can find point on bounding box closest to the laser pointer
 - We want to constantly move the laser pointer such that it's moving away from the cat
-  - Cat shoudld never catch the laser pointer
-  - If we detect that cat has stopped chasing it, we should taunt the cat by moving the pointer in front of cat
+- If we detect that cat has stopped chasing it, we should taunt the cat by moving the pointer in front of cat
 - We can use the trajectory of the cat as a hueristic to determine where the cat will be headed
 
 **Control Stack**
@@ -27,7 +24,7 @@ Control a 3/4 DOF robot arm to track a cat and constantly play laser pointer fet
 - We need calculate the world coordinate of the robot
   - Given goal coordinates we can solve analytical inverse kinematics to ascertain joint angles
 - Pass in joint angles to RP2040 for control through serial communication
-  - Server code runs on jetson and will connect to RP2040 with USB-C cable
+  - Server code runs on jetson and will connect to RP2040
 
 ## setup
 
